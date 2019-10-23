@@ -4,9 +4,10 @@ import requests, time, json
 import os, sys, logging
 import nonebot
 
-pathExport = ''   #oneDrive path
-path = ''   #a temp path
-googleAPIKey = ''     #google api key
+pathExport = 'D:/hanayori.paryi.xyz/OneDrive - paryi/Others/'
+path = 'D:/dl/Others/'
+googleAPIKey = 'AIzaSyCGjl5IedVCHJYKWVdYVbmJnflgiP_GrA4'
+uploader = 'D:/BaiduService/BaiduPCS-Go-v3.6-windows-x64/BaiduPCS-Go-v3.6-windows-x64/BaiduPCS-Go.exe'
 
 def main():
     if not getStatus():
@@ -38,26 +39,26 @@ def main():
         registerTrue()
 
 def registerTrue():
-    file = open('', 'r')
+    file = open('D:/dl/started.json', 'r')
     statusDict = json.loads(str(file.read()))
     statusDict['status'] = True
-    with open('', 'w+') as f:
+    with open('D:/dl/started.json', 'w+') as f:
         json.dump(statusDict, f, indent=4)
 
 def registerFalse():
-    file = open('', 'r')
+    file = open('D:/dl/started.json', 'r')
     statusDict = json.loads(str(file.read()))
     statusDict['status'] = False
-    with open('', 'w+') as f:
+    with open('D:/dl/started.json', 'w+') as f:
         json.dump(statusDict, f, indent=4)
 
 def getStatus():
-    file = open('', 'r')
+    file = open('D:/dl/started.json', 'r')
     statusDict = json.loads(str(file.read()))
     return statusDict['status']
 
 def getConfig() -> dict:
-    file = open('', 'r+')     #config file path
+    file = open('E:/Python/qqBot/config/downloader.json', 'r+')
     fl = file.read()
     import json
     try:
@@ -109,7 +110,10 @@ def downloadVideo(videoID : str, name : str, groupID):
     try:
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             videoTitle_temp = ydl.extract_info(youtubeLink, download=False).get('title')
-            videoTitle = videoTitle_temp[0: len(videoTitle_temp) // 3 - 1]
+            if len(videoTitle_temp) > 20:
+                videoTitle = videoTitle_temp[0 : 19]
+            else:
+                videoTitle = videoTitle_temp
             videoTitle = videoTitle.replace('|', '').replace(' ', '-').replace('/', '~')
 
     except youtube_dl.utils.ExtractorError:
@@ -117,7 +121,7 @@ def downloadVideo(videoID : str, name : str, groupID):
         registerTrue()
         return
 
-    realPath3 = pathExport + name + '/' + '%s.mp4' % videoTitle
+    realPath3 = pathExport + name + '/' + videoTitle + '.mp4'
     logger.warning('Downloading in %s' % realPath)
 
     if not os.path.exists(path + name + '/'):
@@ -127,6 +131,8 @@ def downloadVideo(videoID : str, name : str, groupID):
         os.makedirs(pathExport + name + '/')
 
     if not (os.path.exists(realPath) or os.path.exists(realPath2) or os.path.exists(realPath3)):
+
+        print("Missing %s" % realPath3)
         logger.warning('Download will be starting shortly.\nVideo ID: %s' % videoID)
         registerFalse()
         try:
@@ -140,7 +146,7 @@ def downloadVideo(videoID : str, name : str, groupID):
                 audioName = 'tempAudio' if name == 'others' else 'tempAudio_bulk'
 
                 ydl_opts = {
-                    'format': 'bestaudio/best',
+                    'format': 'bestaudio[ext=m4a]/bestaudio',
                     'outtmpl': '%s%s/%s.m4a' % (path, name, audioName),
                     'noplaylist': True
                 }
@@ -161,7 +167,7 @@ def downloadVideo(videoID : str, name : str, groupID):
             registerTrue()
 
     else:
-        logger.warning('Download has already finished.')
+        logger.warning('Download has already finished.\nVideo Title: %s' % videoTitle)
         registerTrue()
 
 def mergeVideos(videoTitle, name):
@@ -179,7 +185,9 @@ def mergeVideos(videoTitle, name):
             "aac",
             "-vcodec",
             "copy",
-            "%s%s/%s.mp4" % (pathExport, name, videoTitle)
+            "%s%s/%s.mp4" % (pathExport, name, videoTitle),
+            "-err_detect",
+            "explode"
         ])
 
         os.remove("%s%s/temp.mp4" % (path, name))
@@ -198,7 +206,9 @@ def mergeVideos(videoTitle, name):
             "aac",
             "-vcodec",
             "copy",
-            "%s%s/%s.mp4" % (pathExport, name, videoTitle)
+            "%s%s/%s.mp4" % (pathExport, name, videoTitle),
+            "-err_detect",
+            "explode"
         ])
 
         os.remove("%s%s/temp_bulk.mp4" % (path, name))
@@ -207,7 +217,50 @@ def mergeVideos(videoTitle, name):
     registerTrue()
 
 def uploadStuff(videoName : str, groupID, retcode=-1):
-    
+    """
+    command = [uploader, "upload", filePath, targetPath]
+    import subprocess
+    subprocess.run(command)
+
+    import requests
+    from qcloud_cos import CosConfig
+    from qcloud_cos import CosS3Client
+
+    ak = "2019186476261361582082806"
+    sk = "70CE2219972D8AE950C7D4CB18128E6857FBD36E"
+    bucket_id = "505920095592120329406"
+    region = "ap-chengdu"
+    Doname = "http://mos.api.maoyuncloud.cn/"
+    tokenPath = "/api/user/getToken"
+    bucketUploadToken = "/api/mos/bucket/uploadToken"
+    token = ""
+    tokenUrl = Doname + tokenPath
+    json_data = {"appid": ak, "appkey": sk}
+    req = requests.post(tokenUrl, json=json_data)
+    retdata = req.json()
+    if retdata["code"] == 0:
+        token = retdata["token"]
+    if token != "":
+        headers = {'Authorization': token}
+        json_data = {"bucket_id": bucket_id, "url": "/qiyu/" + name, "is_block": True}
+        req = requests.post(Doname + bucketUploadToken, json=json_data, headers=headers)
+        retdata = req.json()
+        secret_id = retdata["secret_id"]
+        secret_key = retdata["secret_key"]
+        token = retdata["token"]
+        savekey = "/qiyu/" + name
+        scheme = 'https'
+        config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key, Token=token, Scheme=scheme)
+        client = CosS3Client(config)
+        response = client.upload_file(
+            Bucket=bucket_id + "-1258813047",
+            LocalFilePath=path,
+            MAXThread=4,
+            Key=savekey,
+        )
+        download_url = "http://dl.hanayori.cn/qiyu/" + name
+        print(download_url)
+    """
     file = open('E:/Python/qqBot/config/YouTubeNotify.json', 'r')
     fl = file.read()
     downloadedDict = json.loads(str(fl))
