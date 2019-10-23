@@ -4,10 +4,10 @@ import requests, time, json
 import os, sys, logging
 import nonebot
 
-pathExport = 'D:/hanayori.paryi.xyz/OneDrive - paryi/Others/'
-path = 'D:/dl/Others/'
-googleAPIKey = 'AIzaSyCGjl5IedVCHJYKWVdYVbmJnflgiP_GrA4'
-uploader = 'D:/BaiduService/BaiduPCS-Go-v3.6-windows-x64/BaiduPCS-Go-v3.6-windows-x64/BaiduPCS-Go.exe'
+pathExport = ''
+path = ''
+googleAPIKey = ''
+uploader = ''
 
 def main():
     if not getStatus():
@@ -174,7 +174,7 @@ def mergeVideos(videoTitle, name):
     from subprocess import run
     if name == 'others':
         run ([
-            "D:/youtube/ffmpeg/bin/ffmpeg",
+            "",
             "-i",
             "%s%s/temp.mp4" % (path, name),
             "-i",
@@ -195,7 +195,7 @@ def mergeVideos(videoTitle, name):
 
     else:
         run([
-            "D:/youtube/ffmpeg/bin/ffmpeg",
+            "",
             "-i",
             "%s%s/temp_bulk.mp4" % (path, name),
             "-i",
