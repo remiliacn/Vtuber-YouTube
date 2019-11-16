@@ -1,0 +1,7 @@
+{
+    "[这里写YouTube的名字]": {
+        "channel": "[这里写YouTube的地址，如UCiexEBp7-D46FXUtQ-BpgWg]",
+        "qqGroup": [这里写需要转载到的qq组号，必须是int],
+        "enabled": true
+    }
+}
